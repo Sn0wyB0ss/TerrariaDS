@@ -1,376 +1,95 @@
-/******************************************************************************
-*******************************************************************************
-	Easy GL2D 
-	scrolling example
-	Shows how easy it is to code a scrolling engine in Easy GL2D DS
-	
-	Relminator (Richard Eric M. Lope BSN RN)
-	Http://Rel.Phatcode.Net
-	
-	Tiles by Unknown
-	Crono sprite by Square Enix
-	
-*******************************************************************************
-******************************************************************************/ 
-
-
 #include <nds.h>
 #include <stdio.h>
 #include <gl2d.h>
 
+#include "structs.h"
+#include "mapO.h"
+#include "cameraO.h"
+#include "cursorO.h"
+#include "playerO.h"
 
-// our map dimensions
-#define  MAP_WIDTH 18
-#define  MAP_HEIGHT 18
+enum GameState {G_MENU,G_OVERWOLRD};
 
+void DSInitialSetup();
+void Render(Player* player, Camera* camera, Map* map, CursorPointer* cursor_pointer);
 
-/*
-	I'm using the struct of player from the
-	Animate simple man/woman exmple in the 
-	"nds/examples" folder
-	You might want to read up on that too to
-	see the differnce in handling sprites via OAM
-	and Easy GL2D.
-*/
-
-enum PlayerState { P_RIGHT = 0, P_UP = 1, P_DOWN = 2, P_LEFT = 3 };
-
-const int TILESIZE = 32;
-
-typedef struct Player
-{
-
-	int x;
-	int y;
-	int height;
-	int width;
-	float gravity;
-	int jump;
-	int speed;
-	float speedy;
-	bool on_floor;
-
-	int gfx_frame;
-
-	GL_FLIP_MODE hflip;
-
-	int state;
-	int anim_frame;
+void DSInitialSetup() {
+	videoSetMode(MODE_5_3D);
 	
-	int is_walking;       // an animation flag whether crono is walking or not
-
-}Player;
-
-
-// Our level struct
-typedef struct Level
-{
-	int width;			// dimensions of the map
-	int height;
+	consoleDemoInit();
 	
-	int camera_x;		// top-left cooordinates of our virtual camera
-	int camera_y;		// Works almost the same the 2d BG scroller
-	
-	int tile_x;			// current tile the top-left coordinate of our
-	int tile_y;			// camera occupies
-	
-	int pixel_x;		// scrolling tile offsets
-	int pixel_y;
-	
-} Level;
+	glScreen2D(); // Initialize GL in 3d mode
 
-typedef struct CursorPointer 
-{
-	int x;
-	int y;
-} CursorPointer;
+	vramSetBankA( VRAM_A_TEXTURE ); 	// set  Bank A to texture (128 kb)
 
+	vramSetBankE(VRAM_E_TEX_PALETTE);  // Allocate VRAM bank for all the palettes
+}
 
-/******************************************************************************
+void Render(Player* player, Camera* camera, Map* map, CursorPointer* cursor_pointer) {
+		iprintf("\x1b[1;1HTerraria DS");
+		iprintf("\x1b[2;1HArrow Keys to move");
+		//iprintf("\x1b[5;1HTotal Texture size= %i kb", TextureSize / 1024);
+		iprintf("\x1b[4;1HPlayerSpeedY = %i", player->speed_y);
+		iprintf("\x1b[5;1HPlayerX = %i", player->x);
+		iprintf("\x1b[6;1HPlayerY = %i", player->y);
+		iprintf("\x1b[8;1HCamTileX = %i", camera->tile_x);
+		iprintf("\x1b[9;1HCamTileX = %i", camera->tile_y);
 
-    MAIN 
-
-******************************************************************************/
-
-
-void AnimatePlayer( Player *p );
-void DrawMap( Level *lvl, unsigned short map[MAP_WIDTH][MAP_HEIGHT], glImage *tiles );
-void CameraUpdate( Level *lvl, Player *p );
-void InitMap( unsigned short map[MAP_WIDTH][MAP_HEIGHT] );
-
-
-// GRIT auto-genrated arrays of images
-#include "tiles.h"
-#include "cursor.h"
-#include "player.h"
-
-// Texture Packer auto-generated UV coords
-#include "uvcoord_player.h"
-
-glImage player_images[PLAYER_NUM_IMAGES];
-
-// This tileset won't make use of our texture packer generated coords
-// messy, manual and prone to errors
-// BMP is 256x256 and tiles are 16x16 so.. (256/16) * (256 /16) = 16 * 16
-glImage  tiles_images[(256/16) * (256/16)];  
-
-glImage  cursor_images[1];
-
-
-// Our level map
-// I used shorts since we would be able to reference 65535
-// uinique tiles with shorts.
-// You should use malloc() or new[] to dimension
-// your maps for a real game though.
-unsigned short level_map[MAP_WIDTH][MAP_HEIGHT];
-
+		glBegin2D();
+		
+		DrawMap(map, camera);
+		DrawCursor(cursor_pointer, camera);			
+		DrawPlayer(player, camera);
+		
+		glEnd2D();
+		
+		glFlush(0);
+}
 
 int main( int argc, char *argv[] )
 {
 
-	// Our crono guy
-	Player crono;
-	
-	// the level
-	Level lvl;
+	DSInitialSetup();
 
-	// Cursor Pointer
-	CursorPointer cursor_pointer;
-	
-	// crono starting positions
-	crono.x = 16 * 5;		// 5th tile 
-	crono.y = 16 * 4;
-	crono.height = 30;
-	crono.width = 20;
-	crono.gravity = 0.4;
-	crono.jump = -7;
-	crono.speed = 0;
-	crono.speedy = 0;
-	crono.hflip = GL_FLIP_NONE;
-	crono.on_floor = false;
-	crono.state = P_RIGHT;	// facing right
-	crono.anim_frame = 0;	// starting frame
-
-	lvl.width = MAP_WIDTH;		// init map dimesions
-	lvl.height = MAP_HEIGHT;
-
-	cursor_pointer.x = 0;
-	cursor_pointer.y = 0;
-
-	//CameraUpdate(&lvl, &crono);
-	
-	InitMap(level_map);			// load a randomized map (too lazy to make a proper one)
-	
-	videoSetMode(MODE_5_3D);	// favorite mode
-	
-	
-	consoleDemoInit();
-	
-	
-	// Initialize GL in 3d mode
-	glScreen2D();
-	
-	
-	// set  Bank A to texture (128 kb)
-	vramSetBankA( VRAM_A_TEXTURE );
-	
-	vramSetBankE(VRAM_E_TEX_PALETTE);  // Allocate VRAM bank for all the palettes
-
-	int player_textureID = 
-		glLoadSpriteSet( player_images,			// pointer to glImage array
-						 PLAYER_NUM_IMAGES, 		// Texture packer auto-generated #define
-						 player_texcoords,		// Texture packer auto-generated array
-						 GL_RGB256,				// texture type for glTexImage2D() in videoGL.h 
-						 TEXTURE_SIZE_512,		// sizeX for glTexImage2D() in videoGL.h
-						 TEXTURE_SIZE_32,		// sizeY for glTexImage2D() in videoGL.h
-						 GL_TEXTURE_WRAP_S|GL_TEXTURE_WRAP_T|TEXGEN_OFF|GL_TEXTURE_COLOR0_TRANSPARENT, // param for glTexImage2D() in videoGL.h
-						 256,					// Length of the palette to use (256 colors)
-						 (u16*)playerPal,		// Load our 256 color crono palette
-						 (u8*)playerBitmap		// image data generated by GRIT
-					   );
-
-	// Our texture handle for our tiles
-	// I used glLoadTileSet since the texture 
-	// is just a bunch of 16x16 tiles in a 256x256
-	// tileset so we don't need a texture packer for this.
-
-	int tiles_textureID = 
-		glLoadTileSet( tiles_images,		// pointer to glImage array
-					   16,					// sprite width
-					   16,					// sprite height
-					   256,					// bitmap width
-					   256,					// bitmap height
-					   GL_RGB256,			// texture type for glTexImage2D() in videoGL.h 
-					   TEXTURE_SIZE_256,	// sizeX for glTexImage2D() in videoGL.h
-					   TEXTURE_SIZE_256,	// sizeY for glTexImage2D() in videoGL.h
-					   GL_TEXTURE_WRAP_S|GL_TEXTURE_WRAP_T|TEXGEN_OFF|GL_TEXTURE_COLOR0_TRANSPARENT, // param for glTexImage2D() in videoGL.h
-					   256,					// Length of the palette to use (256 colors)
-					   (u16*)tilesPal,		// Load our 256 color tiles palette
-					   (u8*)tilesBitmap		// image data generated by GRIT
-					 );
-
-	int cursor_textureID = 
-		glLoadTileSet( cursor_images,		// pointer to glImage array
-					   16,					// sprite width
-					   16,					// sprite height
-					   16,					// bitmap width
-					   16,					// bitmap height
-					   GL_RGB256,			// texture type for glTexImage2D() in videoGL.h 
-					   TEXTURE_SIZE_256,	// sizeX for glTexImage2D() in videoGL.h
-					   TEXTURE_SIZE_256,	// sizeY for glTexImage2D() in videoGL.h
-					   GL_TEXTURE_WRAP_S|GL_TEXTURE_WRAP_T|TEXGEN_OFF|GL_TEXTURE_COLOR0_TRANSPARENT, // param for glTexImage2D() in videoGL.h
-					   256,					// Length of the palette to use (256 colors)
-					   (u16*)cursorPal,		// Load our 256 color tiles palette
-					   (u8*)cursorBitmap		// image data generated by GRIT
-					 );
-
-	iprintf("\x1b[1;1HSCROLLING TEST");
-	iprintf("\x1b[3;1HArrow Keys to move");
-	
-	iprintf("\x1b[6;1HRelminator");
-	iprintf("\x1b[7;1HHttp://Rel.Phatcode.Net");
-	
-	
-	iprintf("\x1b[10;1HTiles = %i", tiles_textureID);
-
-	
-	
-		// calculate the amount of 
+	// calculate the amount of 
 	// memory uploaded to VRAM in KB
-	int TextureSize = tilesBitmapLen +
-					  cursorBitmapLen+
-					  playerBitmapLen;
-					  
-					  
-	iprintf("\x1b[17;1HTotal Texture size= %i kb", TextureSize / 1024);
+	//int TextureSize = tilesBitmapLen +
+	//				  cursorBitmapLen+
+	//				  playerBitmapLen;
 
-			
-	int frame = 0;	// ever present frame counter
 	int key;		// for key input
 	int prevKeys;
 
+	// Intialize Entities
+	Camera *camera =  malloc(sizeof(Camera));
+	Map *map = InitMap();
+	Player *player = InitializePlayer();
+	CursorPointer *cursor_pointer = InitializeCursor();
+
+	CameraUpdate(camera, player, map);
+
 	while( 1 )
 	{
-		// increment frame counter
-		frame++;
-	
-		crono.is_walking = false;  // crono is lazily standing to the right
-		crono.speed = 0;
+
+		// Update Inputs
 		scanKeys();
 		key = keysHeld();
-		
-		// process input and move crono
 
-		if (key & KEY_R) {
-			level_map[cursor_pointer.x / 16][cursor_pointer.y / 16] = 0;
-		}
-		if (key & KEY_L) {
-			level_map[cursor_pointer.x / 16][cursor_pointer.y / 16] = 1;
-		}
+		// Game Logic
+		CursorLogic(cursor_pointer, key, prevKeys);
+		MapInteraction(cursor_pointer, map, key);
+		PlayerLogic(player, map, key);
+		CameraUpdate(camera,player,map);
 
-		if ((key & KEY_Y) && !(prevKeys & KEY_Y)) {
-			cursor_pointer.x -= 16;
-		}
-		if ((key & KEY_A) && !(prevKeys & KEY_A)) {
-			cursor_pointer.x += 16;
-		}
-		if ((key & KEY_B) && !(prevKeys & KEY_B)) {
-			cursor_pointer.y += 16;
-		}
-		if ((key & KEY_X) && !(prevKeys & KEY_X)) {
-			cursor_pointer.y -= 16;
-		}
-
-		if (cursor_pointer.x < 0) {
-			cursor_pointer.x = 0;
-		}
-		if (cursor_pointer.y < 0) {
-			cursor_pointer.y = 0;
-		}
-
-
-		if (key & KEY_RIGHT)
-		{
-			crono.speed = 1;
-			crono.state = P_RIGHT;
-			crono.is_walking = true;
-			crono.hflip = GL_FLIP_H;
-		}
-		
-		if (key & KEY_LEFT)
-		{
-			crono.speed = -1;
-			crono.state = P_LEFT;
-			crono.is_walking = true;
-			crono.hflip = GL_FLIP_NONE; 
-		}
-
-		if (key & KEY_UP && crono.on_floor)
-		{
-			crono.speedy = crono.jump;
-			crono.on_floor = false;
-		}
-
-		crono.speedy += crono.gravity;
-		
-		if (crono.speedy > 7) {
-			crono.speedy = 7;
-		}
-
-		DetectPlayerCollision(level_map, &crono);
-		
-		// Update player animations 	
-		//AnimatePlayer(&crono);
-		
-		
-		// Update level camera relative to crono's position
-		CameraUpdate(&lvl, &crono);
-
-		iprintf("\x1b[9;1HPlayerSpeedY = %i", crono.speedy);
-
-		iprintf("\x1b[13;1HPlayerX = %i", crono.x);
-		iprintf("\x1b[14;1HPlayerY = %i", crono.y);
-		
-		glBegin2D();
-		
-			// Draw our map layer
-			DrawMap( &lvl, level_map, tiles_images );
-
-			DrawCursor( &cursor_pointer, cursor_images, lvl.camera_x, - lvl.camera_y );			
-			// Process crono
-			// Left and right share the same frames
-			// I just flipped the sprite depending on where crono faces.
-			glSpriteRotate(crono.x - lvl.camera_x + crono.width /2, crono.y - lvl.camera_y + crono.height /2, 0, crono.hflip , &player_images[0]);
-			
-			// Draw a translucent gradient box to emulate dialogboxes
-			// giving it a unique Polygon ID
-			//glPolyFmt(POLY_ALPHA(16) | POLY_CULL_NONE | POLY_ID(1));
-			//glBoxFilledGradient( 0, 150, 255, 191,
-			//					 RGB15( 31,  0,  0 ),
-			//					 RGB15(  0, 31,  0 ),
-			//					 RGB15( 31,  0, 31 ),
-			//					 RGB15(  0, 31, 31 )
-            //                   );
-							   
-			//back to opaque mode
-			// and draw the border of the "dialog box"
-			//glPolyFmt(POLY_ALPHA(31) | POLY_CULL_NONE );
-			//int i;
-			//for( i = 0; i < 5; i++)
-			//{
-			//	glBox( i, 150 + i, 255 - i , 191 - i,
-			//		   RGB15( 31-i*5,  i*5,  31 - i * 3 )
-			//		 );
-			//}
-			
-		glEnd2D();
-		
-		glFlush(0);
-
+		// Render Logic
+		Render(player,camera,map,cursor_pointer);
 		swiWaitForVBlank();
+
+		//Exit the Game?
 		scanKeys();
-		if (keysDown()&KEY_START) break;	
+		if (keysDown()&(KEY_START|KEY_SELECT)) break;	
 	
+		//Get The Previous Input
 		prevKeys = key;
 	}
 
@@ -378,226 +97,12 @@ int main( int argc, char *argv[] )
 	
 }
 
-void DetectHorizontalCollision(unsigned short map[MAP_WIDTH][MAP_HEIGHT], Player* p, int x, int y) {
-	int tile_x;
-	int tile_y;
-	//Horizontal Collision
-	if (p->speed > 0) {
-		tile_x = (x + p->width + p->speed) / 16;			
-		tile_y = y / 16;
-		if (map[tile_x][tile_y] != 0) {
-			p->x = tile_x * 16 - p->width;
-			p->speed = 0;
-		}
-	}
-	else {
-		tile_x = (x + p->speed) / 16;			
-		tile_y = y / 16;
-		if (map[tile_x][tile_y] != 0) {
-			p->x = (tile_x+1) * 16;
-			p->speed = 0;
-		}
-	}
-}
-
-void DetectVerticalCollision(unsigned short map[MAP_WIDTH][MAP_HEIGHT], Player* p, int x, int y) { 
-	int tile_x;
-	int tile_y;
-	//Vertical Collision
-	if (p->speedy > 0) {
-		tile_x = x / 16;			
-		tile_y = (y + p->height + p->speedy) / 16;
-		if (map[tile_x][tile_y] != 0) {
-			p->y = tile_y * 16 - p->height;
-			p->speedy = 0;
-			p->on_floor = true;
-		}
-		if (map[tile_x][tile_y] == 0) {
-			p->on_floor = false;
-		}
-	}
-	//else {
-	//	tile_x = x / 16;			
-	//	tile_y = (y + p->speedy) / 16;
-	//	if (map[tile_x][tile_y] != 0) {
-	//		p->y = (tile_y+1) * 16;
-	//		p->speedy = 0;
-	//	}
-	//}
-}
-
-
-void DetectPlayerCollision(unsigned short map[MAP_WIDTH][MAP_HEIGHT], Player *p) {
-
-	DetectHorizontalCollision(map, p, p->x, p->y);
-	DetectHorizontalCollision(map, p, p->x, p->y+16);
-
-	p->x += p->speed;
-
-	DetectVerticalCollision(map, p, p->x + 8, p->y);
-
-	p->y += p->speedy;
-	
-
-	
-}
-
-// Animates crono
-void AnimatePlayerT( Player *p )
-{
-
-	const int FRAMES_PER_ANIMATION = 6;		// 6 crono animations 
-
-	static int frame = 0;      // a static frame counter
-	
-	// Only animate if crono is walking
-	if (p->is_walking)
-	{
-		frame++;
-		
-		// Animate only every 8th frame
-		// I used an if() block instead of % since % is slow
-		// on the DS (not that it would matter in this demo)
-		if ((frame & 7) == 0)
-		{ 
-			p->anim_frame++;
-			if (p->anim_frame >= (FRAMES_PER_ANIMATION))
-				p->anim_frame = 0;
-		}
-	}
-	
-	// P_RIGHT, P_UP and P_DOWN is calculated normally.
-	// P_LEFT is P_RIGHT flipped.
-	switch (p->state)
-	{
-		case P_RIGHT:
-			p->gfx_frame = p->anim_frame + p->state * FRAMES_PER_ANIMATION;
-			break;
-		case P_UP:
-			p->gfx_frame = p->anim_frame + p->state * FRAMES_PER_ANIMATION;
-			break;
-		case P_DOWN:
-			p->gfx_frame = p->anim_frame + p->state * FRAMES_PER_ANIMATION;
-			break;
-		case P_LEFT:
-			p->gfx_frame = p->anim_frame + P_RIGHT * FRAMES_PER_ANIMATION;
-			break;
-		default:
-			p->gfx_frame = p->anim_frame + p->state * FRAMES_PER_ANIMATION;
-	}
-		
-}
-
-
-void DrawCursor(CursorPointer *p, glImage *images, int cam_x, int cam_y) {
-	glSprite( p->x + cam_x,
-			  p->y + cam_y,
-			  GL_FLIP_NONE,
-			  &images[0]
-	);
-}
-
-// Draws a full screen map
-void DrawMap( Level *lvl, unsigned short map[MAP_WIDTH][MAP_HEIGHT], glImage *tiles )
-{
-	// tiles are 16x16 pixels
-	const int TILE_SIZE = 16;
- 
-	// calculate number of tiles per row and column
-	const int SCREEN_TILE_X = SCREEN_WIDTH / TILE_SIZE;
-	const int SCREEN_TILE_Y = SCREEN_HEIGHT / TILE_SIZE;
-	
-	int x, y;				// counters
-	int tile_x, tile_y;		// current tile to draw
-	int screen_x, screen_y;	// actual screen position (in pixel)
-	int i;					// tile index to draw
-	
-	// we need to draw an extra tile at the bottom and right 
-	// since we are scrolling
-	for (y = 0; y <= SCREEN_TILE_Y; y++)
-	{
-		for (x = 0; x <= SCREEN_TILE_X; x++) 
-		{
-			tile_x = lvl->tile_x + x;		// get relative tile positions
-			tile_y = lvl->tile_y + y;
-			i = map[tile_x][tile_y];		// get map index
-			screen_x = (x * TILE_SIZE) - lvl->pixel_x;      //Calculate where to put a
-            screen_y = (y * TILE_SIZE) - lvl->pixel_y;      //particular tile
-			glSprite(screen_x, screen_y, GL_FLIP_NONE , &tiles[i]);
-		}
-	}
-	
-	
-}
-
-
-// Update's the camera's position relative to the player
-void CameraUpdate( Level *lvl, Player *p )
-{
-
-	// set constants for middle of screen
-	const int SCREEN_MID_WIDTH = SCREEN_WIDTH / 2;
-	const int SCREEN_MID_HEIGHT = SCREEN_HEIGHT / 2;
-
-	const int TILE_SIZE = 16;
- 
-	// update the camera
-	lvl->camera_x = p->x - SCREEN_MID_WIDTH;
-	lvl->camera_y = p->y - SCREEN_MID_HEIGHT;
-	
-	// limit camera X values
-	if ( lvl->camera_x < 0 ) lvl->camera_x = 0;
-	if ( lvl->camera_x > ((lvl->width-2) * TILE_SIZE ) - SCREEN_WIDTH )
-	{
-		lvl->camera_x = ((lvl->width-2) * TILE_SIZE ) - SCREEN_WIDTH;
-	}
-	
-	// limit camera Y values
-	if ( lvl->camera_y < 0 ) lvl->camera_y = 0;
-	if ( lvl->camera_y > ((lvl->height-2) * TILE_SIZE ) - SCREEN_HEIGHT )
-	{
-		lvl->camera_y = ((lvl->height-2) * TILE_SIZE ) - SCREEN_HEIGHT;
-	}
-	
-	// calculate level starting tiles
-	lvl->tile_x = lvl->camera_x / TILE_SIZE; 
-	lvl->tile_y = lvl->camera_y / TILE_SIZE; 
-	
-	// calculate tile pixel offsets
-	// Only works with power of 2 tilesize
-	// use "%" for non-power of 2 sizes
-	lvl->pixel_x = lvl->camera_x & (TILE_SIZE - 1);
-	lvl->pixel_y = lvl->camera_y & (TILE_SIZE - 1);
-	
-}
-
-
-// Just a simple map
-// A real engine should use a map editor
-void InitMap( unsigned short map[MAP_WIDTH][MAP_HEIGHT] )
-{
-
-	int x, y, dist;
-	for (y = 0; y < MAP_HEIGHT; y++)
-	{
-		for (x = 0; x < MAP_WIDTH; x++) 
-		{
-			map[x][y] = 1;
-			dist = (x%4) & 255;
-
-			if (y < 6+dist) {
-				map[x][y] = 0;
-			}
-			if (y == 6+dist) {
-				map[x][y] = 2;
-			}
 
 
 
 
-			map[x][y] &= 255;
-			
-		}
-	}
 
-}
+
+
+
+

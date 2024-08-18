@@ -1,4 +1,4 @@
-main.o: D:/GameDev/VisualCode/TerrariaDS/source/main.c \
+cursorO.o: D:/GameDev/VisualCode/TerrariaDS/source/cursorO.c \
  D:/devkitPro/libnds/include/nds.h \
  D:/devkitPro/libnds/include/nds/libversion.h \
  D:/devkitPro/libnds/include/nds/ndstypes.h \
@@ -60,15 +60,9 @@ main.o: D:/GameDev/VisualCode/TerrariaDS/source/main.c \
  D:/devkitPro/libnds/include/nds/arm9/videoGL.h \
  D:/devkitPro/libnds/include/nds/arm9/nand.h \
  D:/devkitPro/libnds/include/gl2d.h \
- D:/GameDev/VisualCode/TerrariaDS/include/structs.h \
- D:/GameDev/VisualCode/TerrariaDS/include/mapO.h \
- D:/GameDev/VisualCode/TerrariaDS/include/structs.h \
- D:/GameDev/VisualCode/TerrariaDS/build/tiles.h \
- D:/GameDev/VisualCode/TerrariaDS/include/cameraO.h \
  D:/GameDev/VisualCode/TerrariaDS/include/cursorO.h \
- D:/GameDev/VisualCode/TerrariaDS/build/cursor.h \
- D:/GameDev/VisualCode/TerrariaDS/include/playerO.h \
- D:/GameDev/VisualCode/TerrariaDS/build/player.h
+ D:/GameDev/VisualCode/TerrariaDS/include/structs.h \
+ D:/GameDev/VisualCode/TerrariaDS/build/cursor.h
 D:/devkitPro/libnds/include/nds.h:
 D:/devkitPro/libnds/include/nds/libversion.h:
 D:/devkitPro/libnds/include/nds/ndstypes.h:
@@ -130,12 +124,6 @@ D:/devkitPro/libnds/include/nds/arm9/video.h:
 D:/devkitPro/libnds/include/nds/arm9/videoGL.h:
 D:/devkitPro/libnds/include/nds/arm9/nand.h:
 D:/devkitPro/libnds/include/gl2d.h:
-D:/GameDev/VisualCode/TerrariaDS/include/structs.h:
-D:/GameDev/VisualCode/TerrariaDS/include/mapO.h:
-D:/GameDev/VisualCode/TerrariaDS/include/structs.h:
-D:/GameDev/VisualCode/TerrariaDS/build/tiles.h:
-D:/GameDev/VisualCode/TerrariaDS/include/cameraO.h:
 D:/GameDev/VisualCode/TerrariaDS/include/cursorO.h:
+D:/GameDev/VisualCode/TerrariaDS/include/structs.h:
 D:/GameDev/VisualCode/TerrariaDS/build/cursor.h:
-D:/GameDev/VisualCode/TerrariaDS/include/playerO.h:
-D:/GameDev/VisualCode/TerrariaDS/build/player.h:

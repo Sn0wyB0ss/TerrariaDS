@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "cursor.h": "c",
+        "stdio.h": "c",
+        "camera_o.h": "c",
+        "map_o.h": "c",
+        "player_o.h": "c",
+        "cursor_o.h": "c",
+        "tiles.h": "c",
+        "playero.h": "c",
+        "cursoro.h": "c",
+        "mapo.h": "c",
+        "camerao.h": "c",
+        "player.h": "c",
+        "structs.h": "c",
+        "uvcoord_player.h": "c"
+    }
+}
