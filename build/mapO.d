@@ -61,7 +61,7 @@ mapO.o: D:/GameDev/VisualCode/TerrariaDS/source/mapO.c \
  D:/devkitPro/libnds/include/nds/arm9/nand.h \
  D:/devkitPro/libnds/include/gl2d.h \
  D:/GameDev/VisualCode/TerrariaDS/include/mapO.h \
- D:/GameDev/VisualCode/TerrariaDS/include/structs.h \
+ D:/GameDev/VisualCode/TerrariaDS/include/global.h \
  D:/GameDev/VisualCode/TerrariaDS/build/tiles.h
 D:/devkitPro/libnds/include/nds.h:
 D:/devkitPro/libnds/include/nds/libversion.h:
@@ -125,5 +125,5 @@ D:/devkitPro/libnds/include/nds/arm9/videoGL.h:
 D:/devkitPro/libnds/include/nds/arm9/nand.h:
 D:/devkitPro/libnds/include/gl2d.h:
 D:/GameDev/VisualCode/TerrariaDS/include/mapO.h:
-D:/GameDev/VisualCode/TerrariaDS/include/structs.h:
+D:/GameDev/VisualCode/TerrariaDS/include/global.h:
 D:/GameDev/VisualCode/TerrariaDS/build/tiles.h:

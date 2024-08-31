@@ -60,8 +60,9 @@ cameraO.o: D:/GameDev/VisualCode/TerrariaDS/source/cameraO.c \
  D:/devkitPro/libnds/include/nds/arm9/videoGL.h \
  D:/devkitPro/libnds/include/nds/arm9/nand.h \
  D:/devkitPro/libnds/include/gl2d.h \
+ D:/GameDev/VisualCode/TerrariaDS/include/global.h \
  D:/GameDev/VisualCode/TerrariaDS/include/cameraO.h \
- D:/GameDev/VisualCode/TerrariaDS/include/structs.h
+ D:/GameDev/VisualCode/TerrariaDS/include/global.h
 D:/devkitPro/libnds/include/nds.h:
 D:/devkitPro/libnds/include/nds/libversion.h:
 D:/devkitPro/libnds/include/nds/ndstypes.h:
@@ -123,5 +124,6 @@ D:/devkitPro/libnds/include/nds/arm9/video.h:
 D:/devkitPro/libnds/include/nds/arm9/videoGL.h:
 D:/devkitPro/libnds/include/nds/arm9/nand.h:
 D:/devkitPro/libnds/include/gl2d.h:
+D:/GameDev/VisualCode/TerrariaDS/include/global.h:
 D:/GameDev/VisualCode/TerrariaDS/include/cameraO.h:
-D:/GameDev/VisualCode/TerrariaDS/include/structs.h:
+D:/GameDev/VisualCode/TerrariaDS/include/global.h:

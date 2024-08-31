@@ -5,7 +5,17 @@
 #include <stdio.h>
 #include <gl2d.h>
 
-#include "structs.h"
+#include "global.h"
 
-void CameraUpdate(Camera* camera, Player* p, Map* map);
+typedef struct s_Camera 
+{
+	int x;
+	int y;
+	int tile_x;
+	int tile_y;
+	int pixel_x;
+	int pixel_y;
+} Camera;
+
+void CameraUpdate(Camera* camera, int p_x, int p_y, int map_width, int map_height);
 #endif

@@ -5,11 +5,19 @@
 #include <stdio.h>
 #include <gl2d.h>
 
-#include "structs.h"
-
+#include "global.h"
 #include "cursor.h"
 
-CursorPointer* InitializeCursor();
+typedef struct s_CursorPointer 
+{
+	int x;
+	int y;
+
+	glImage textures[1];
+	int texture_id;
+} CursorPointer;
+
+void InitializeCursor(CursorPointer* cursor_pointer);
 void CursorLogic(CursorPointer* cursor_pointer, int key, int prev_keys);
-void DrawCursor(CursorPointer* cursor_pointer, Camera* camera);
+void DrawCursor(CursorPointer* cursor_pointer, int camera_x, int camera_y);
 #endif

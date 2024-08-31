@@ -13,6 +13,10 @@
         "camerao.h": "c",
         "player.h": "c",
         "structs.h": "c",
-        "uvcoord_player.h": "c"
+        "uvcoord_player.h": "c",
+        "inventoryo.h": "c",
+        "map": "c",
+        "iosfwd": "c",
+        "global.h": "c"
     }
 }

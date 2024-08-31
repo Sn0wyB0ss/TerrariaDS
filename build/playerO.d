@@ -60,8 +60,10 @@ playerO.o: D:/GameDev/VisualCode/TerrariaDS/source/playerO.c \
  D:/devkitPro/libnds/include/nds/arm9/videoGL.h \
  D:/devkitPro/libnds/include/nds/arm9/nand.h \
  D:/devkitPro/libnds/include/gl2d.h \
+ D:/GameDev/VisualCode/TerrariaDS/include/global.h \
  D:/GameDev/VisualCode/TerrariaDS/include/playerO.h \
- D:/GameDev/VisualCode/TerrariaDS/include/structs.h \
+ D:/GameDev/VisualCode/TerrariaDS/include/global.h \
+ D:/GameDev/VisualCode/TerrariaDS/include/inventoryO.h \
  D:/GameDev/VisualCode/TerrariaDS/build/player.h \
  D:/GameDev/VisualCode/TerrariaDS/include/uvcoord_player.h
 D:/devkitPro/libnds/include/nds.h:
@@ -125,7 +127,9 @@ D:/devkitPro/libnds/include/nds/arm9/video.h:
 D:/devkitPro/libnds/include/nds/arm9/videoGL.h:
 D:/devkitPro/libnds/include/nds/arm9/nand.h:
 D:/devkitPro/libnds/include/gl2d.h:
+D:/GameDev/VisualCode/TerrariaDS/include/global.h:
 D:/GameDev/VisualCode/TerrariaDS/include/playerO.h:
-D:/GameDev/VisualCode/TerrariaDS/include/structs.h:
+D:/GameDev/VisualCode/TerrariaDS/include/global.h:
+D:/GameDev/VisualCode/TerrariaDS/include/inventoryO.h:
 D:/GameDev/VisualCode/TerrariaDS/build/player.h:
 D:/GameDev/VisualCode/TerrariaDS/include/uvcoord_player.h:

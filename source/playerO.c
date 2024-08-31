@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <gl2d.h>
 
+#include "global.h"
 #include "playerO.h"
 #include "uvcoord_player.h"
+
     
 
-Player* InitializePlayer() {
-    
-    Player *player = malloc(sizeof(Player));
+void InitializePlayer(Player* player) {
 
     // Basic Struct Variables
 
@@ -49,14 +49,19 @@ Player* InitializePlayer() {
     player->hflip = GL_FLIP_NONE;
     player->image_index = 0;
     player->is_walking = false;
-    
-	return player;
+
+	InitInventory(player->inventory);
+
 
 }
 
-void PlayerLogic(Player* player, Map* map, int key) {
+void PlayerLogic(Player* player, unsigned short map[MAP_WIDTH][MAP_HEIGHT], int key, int prev_key) {
 
 	player->speed_x = 0;
+
+	if (!(prev_key & KEY_SELECT) && (key & KEY_SELECT)) {
+		ShiftActiveSlotRight(player->inventory);
+	}
 
 	if (key & KEY_RIGHT)
 	{
@@ -88,14 +93,19 @@ void PlayerLogic(Player* player, Map* map, int key) {
 		
 }
 
-void DetectHorizontalCollision(Map* map, Player* p, int x, int y) {
+void DetectHorizontalCollision(unsigned short blocks_array[MAP_WIDTH][MAP_HEIGHT], Player* p, int x, int y) {
+
+	if (p->speed_x == 0) {
+		return;
+	}
+
 	int tile_x;
 	int tile_y;
 	//Horizontal Collision
 	if (p->speed_x > 0) {
 		tile_x = (x + p->width + p->speed_x) / 16;			
 		tile_y = y / 16;
-		if (map->blocks_array[tile_x][tile_y] != 0) {
+		if (blocks_array[tile_x][tile_y] != 0) {
 			p->x = tile_x * 16 - p->width;
 			p->speed_x = 0;
 		}
@@ -103,14 +113,20 @@ void DetectHorizontalCollision(Map* map, Player* p, int x, int y) {
 	else {
 		tile_x = (x + p->speed_x) / 16;			
 		tile_y = y / 16;
-		if (map->blocks_array[tile_x][tile_y] != 0) {
+		if (blocks_array[tile_x][tile_y] != 0) {
 			p->x = (tile_x+1) * 16;
 			p->speed_x = 0;
 		}
 	}
 }
 
-void DetectVerticalCollision(Map* map, Player* p, int x, int y) { 
+void DetectVerticalCollision(unsigned short blocks_array[MAP_WIDTH][MAP_HEIGHT] , Player* p, int x, int y) { 
+
+	if (p->speed_y == 0) {
+		return;
+	}
+
+
 	int tile_x;
 	int tile_y;
 	//Vertical Collision
@@ -118,26 +134,26 @@ void DetectVerticalCollision(Map* map, Player* p, int x, int y) {
 	if (p->speed_y > 0) {
 		tile_x = x / 16;			
 		tile_y = (y + p->height + p->speed_y) / 16;
-		if (map->blocks_array[tile_x][tile_y] != 0) {
+		if (blocks_array[tile_x][tile_y] != 0) {
 			p->y = tile_y * 16 - p->height;
 			p->speed_y = 0;
 			p->on_floor = true;
 		}
-		if (map->blocks_array[tile_x][tile_y] == 0) {
+		if (blocks_array[tile_x][tile_y] == 0) {
 			p->on_floor = false;
 		}
 	}
-	//else {
-	//	tile_x = x / 16;			
-	//	tile_y = (y + p->speedy) / 16;
-	//	if (map[tile_x][tile_y] != 0) {
-	//		p->y = (tile_y+1) * 16;
-	//		p->speedy = 0;
-	//	}
-	//}
+	else {
+		tile_x = x / 16;			
+		tile_y = (y + p->speed_y) / 16;
+		if (blocks_array[tile_x][tile_y] != 0) {
+			p->y = (tile_y + 1) * 16;
+			p->speed_y = 0;
+		}
+	}
 }
 
-void DetectPlayerCollision(Map* map, Player* p) {
+void DetectPlayerCollision(unsigned short map[MAP_WIDTH][MAP_HEIGHT] , Player* p) {
 
 	DetectHorizontalCollision(map, p, p->x, p->y);
 	DetectHorizontalCollision(map, p, p->x, p->y+16);
@@ -150,6 +166,6 @@ void DetectPlayerCollision(Map* map, Player* p) {
 	p->y += p->speed_y;	
 }
 
-void DrawPlayer(Player* player,Camera* camera) {
-    glSpriteRotate(player->x - camera->x + player->width /2, player->y - camera->y + player->height /2, 0, player->hflip , &player->textures[0]);
+void DrawPlayer(Player* player, int camera_x, int camera_y) { 
+    glSpriteRotate(player->x - camera_x + player->width /2, player->y - camera_y + player->height /2, 0, player->hflip , &player->textures[0]);
 }

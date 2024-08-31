@@ -4,9 +4,8 @@
 
 #include "mapO.h"
 
-Map* InitMap()
+void InitMap(Map* map)
 {
-	Map *map  = malloc(sizeof(Map));
 
     map->width = MAP_WIDTH;		// init map dimesions
 	map->height = MAP_HEIGHT;
@@ -47,14 +46,11 @@ Map* InitMap()
 		}
 	}
 
-	return map;
-
 }
 
-void MapInteraction(CursorPointer* cursor_pointer, Map* map, int key) {
+void MapInteraction(int cursor_pointer_x, int cursor_pointer_y, unsigned short blocks_array[MAP_WIDTH][MAP_HEIGHT] , int selected_block, int key) {
 
-    int block_index = map->blocks_array[cursor_pointer->x / 16][cursor_pointer->y / 16];
-
+    int block_index = blocks_array[cursor_pointer_x / 16][cursor_pointer_y / 16];
 
     switch (block_index)
     {
@@ -62,11 +58,11 @@ void MapInteraction(CursorPointer* cursor_pointer, Map* map, int key) {
         break;
     
         default:
-            if (key & KEY_R) {
-                map->blocks_array[cursor_pointer->x / 16][cursor_pointer->y / 16] = 0;
-            }
             if (key & KEY_L) {
-                map->blocks_array[cursor_pointer->x / 16][cursor_pointer->y / 16] = 1;
+                blocks_array[cursor_pointer_x / 16][cursor_pointer_y / 16] =  selected_block;
+            }
+            if (key & KEY_R) {
+                blocks_array[cursor_pointer_x / 16][cursor_pointer_y / 16] = 0; 
             }
         break;
     }
@@ -74,7 +70,7 @@ void MapInteraction(CursorPointer* cursor_pointer, Map* map, int key) {
 }
 
 // Draws a full screen map
-void DrawMap(Map* map, Camera* camera)
+void DrawMap(Map* map, int camera_tile_x, int camera_tile_y, int camera_pixel_x, int camera_pixel_y)
 {
 	// tiles are 16x16 pixels
 	const int TILE_SIZE = 16;
@@ -94,15 +90,13 @@ void DrawMap(Map* map, Camera* camera)
 	{
 		for (x = 0; x <= SCREEN_TILE_X; x++) 
 		{
-			tile_x = camera->tile_x + x;		// get relative tile positions
-			tile_y = camera->tile_y + y;
+			tile_x = camera_tile_x + x;		// get relative tile positions
+			tile_y = camera_tile_y + y;
 			i = map->blocks_array[tile_x][tile_y];		// get map index
-			screen_x = (x * TILE_SIZE) - camera->pixel_x;      //Calculate where to put a
-            screen_y = (y * TILE_SIZE) - camera->pixel_y;      //particular tile
+			screen_x = (x * TILE_SIZE) - camera_pixel_x;      //Calculate where to put a
+            screen_y = (y * TILE_SIZE) - camera_pixel_y;      //particular tile
 			glSprite(screen_x, screen_y, GL_FLIP_NONE , &map->tiles_images[i]);
 		}
 	}
-	
-	
 }
 
